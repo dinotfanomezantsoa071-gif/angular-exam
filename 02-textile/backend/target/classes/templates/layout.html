@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title}">Textile</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header th:fragment="header">
+  <strong>Textile</strong>
+  <div><span sec:authentication="name"></span>
+    <form method="post" th:action="@{/logout}"><button>Déconnexion</button></form>
+  </div>
+</header>
+<nav th:fragment="nav">
+  <a th:href="@{/}">Accueil</a>
+  <a th:href="@{/clients}">Clients</a>
+  <a th:href="@{/products}">Produits</a>
+  <a th:href="@{/orders}">Commandes</a>
+  <a th:href="@{/order-lines}">Lignes de commande</a>
+  <a th:href="@{/production-steps}">Étapes</a>
+  <a th:href="@{/quality-controls}">Contrôles qualité</a>
+  <a th:href="@{/statistics}">Statistiques</a>
+  <a sec:authorize="hasRole(&#x27;ADMIN&#x27;)" th:href="@{/settings}">Paramètres</a>
+</nav>
+
+<div th:fragment="notices">
+  <p class="message" th:if="${success}" th:text="${success}"></p>
+  <p class="message error" role="alert" th:if="${error}" th:text="${error}"></p>
+</div>
+<table th:fragment="metrics">
+  <tbody><tr th:each="metric : ${stats.metrics}">
+    <th th:text="${metric.key}"></th><td th:text="${metric.value}"></td>
+  </tr></tbody>
+</table>
+</body></html>

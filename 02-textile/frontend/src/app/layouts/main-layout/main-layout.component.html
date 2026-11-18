@@ -1,0 +1,49 @@
+<div class="min-h-screen bg-slate-50 text-slate-900">
+  @if (sidebarOpen()) {
+    <button class="fixed inset-0 z-30 bg-slate-950/40 lg:hidden" aria-label="Fermer le menu" (click)="sidebarOpen.set(false)"></button>
+  }
+  <aside class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform lg:translate-x-0"
+    [class.-translate-x-full]="!sidebarOpen()">
+    <a routerLink="/dashboard" class="flex h-16 items-center gap-3 border-b border-slate-100 px-6">
+      <span class="grid size-9 place-items-center rounded-xl bg-indigo-600 text-lg font-bold text-white">T</span>
+      <span><span class="block font-semibold tracking-tight">Atelier</span><span class="text-xs text-slate-500">Gestion textile</span></span>
+    </a>
+    <nav class="flex-1 space-y-1 px-3 py-5">
+      <p class="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Espace métier</p>
+      <a routerLink="/dashboard" routerLinkActive="nav-active" class="nav-link" (click)="sidebarOpen.set(false)"><mat-icon>space_dashboard</mat-icon>Tableau de bord</a>
+      <a routerLink="/clients" routerLinkActive="nav-active" class="nav-link" (click)="sidebarOpen.set(false)"><mat-icon>groups</mat-icon>Clients</a>
+      <a routerLink="/products" routerLinkActive="nav-active" class="nav-link" (click)="sidebarOpen.set(false)"><mat-icon>inventory_2</mat-icon>Produits</a>
+      <a routerLink="/orders" routerLinkActive="nav-active" class="nav-link" (click)="sidebarOpen.set(false)"><mat-icon>receipt_long</mat-icon>Commandes</a>
+      <a routerLink="/order-lines" routerLinkActive="nav-active" class="nav-link" (click)="sidebarOpen.set(false)"><mat-icon>list_alt</mat-icon>Lignes de commande</a>
+      <a routerLink="/production-steps" routerLinkActive="nav-active" class="nav-link" (click)="sidebarOpen.set(false)"><mat-icon>precision_manufacturing</mat-icon>Production</a>
+      <a routerLink="/quality-controls" routerLinkActive="nav-active" class="nav-link" (click)="sidebarOpen.set(false)"><mat-icon>verified</mat-icon>Qualité</a>
+      <a routerLink="/statistics" routerLinkActive="nav-active" class="nav-link" (click)="sidebarOpen.set(false)"><mat-icon>monitoring</mat-icon>Statistiques</a>
+      @if (auth.role() === 'ADMIN') {
+        <a routerLink="/settings" routerLinkActive="nav-active" class="nav-link" (click)="sidebarOpen.set(false)"><mat-icon>settings</mat-icon>Paramètres</a>
+      }
+    </nav>
+    <div class="border-t border-slate-100 p-4">
+      <div class="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+        <span class="grid size-9 place-items-center rounded-full bg-indigo-100 font-semibold text-indigo-700">{{ auth.username().slice(0, 1).toUpperCase() }}</span>
+        <div class="min-w-0 flex-1"><p class="truncate text-sm font-medium">{{ auth.username() }}</p><p class="text-xs text-slate-500">{{ auth.role() }}</p></div>
+        <button mat-icon-button aria-label="Se déconnecter" (click)="logout()"><mat-icon>logout</mat-icon></button>
+      </div>
+    </div>
+  </aside>
+  <div class="min-h-screen lg:pl-64">
+    <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur md:px-8">
+      <div class="flex items-center gap-3">
+        <button mat-icon-button class="lg:hidden" aria-label="Ouvrir le menu" (click)="sidebarOpen.set(true)"><mat-icon>menu</mat-icon></button>
+        <span class="text-sm text-slate-500">Atelier <span class="px-1">/</span><span class="font-medium text-slate-800">Espace de travail</span></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button mat-icon-button aria-label="Notifications"><mat-icon>notifications_none</mat-icon></button>
+        <span class="hidden text-sm font-medium text-slate-700 sm:block">{{ auth.username() }}</span>
+      </div>
+    </header>
+    @if (loading.isLoading()) {
+      <div class="fixed inset-x-0 top-16 z-50 h-1 animate-pulse bg-indigo-500"></div>
+    }
+    <main class="p-4 md:p-8"><router-outlet /></main>
+  </div>
+</div>

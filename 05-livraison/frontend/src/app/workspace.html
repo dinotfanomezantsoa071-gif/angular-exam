@@ -1,0 +1,142 @@
+@if (module(); as current) {
+  <div class="page-heading">
+    <div>
+      <span class="eyebrow">{{ isDetail() || isForm() ? current.title.toUpperCase() : 'GESTION OPÉRATIONNELLE' }}</span>
+      <h1>{{ isForm() ? (isEditing() ? 'Modifier ' + current.singular : 'Nouveau ' + current.singular) :
+        isDetail() ? current.singular + ' #' + record()?.['id'] : current.title }}</h1>
+      <p>{{ isDetail() ? 'Consultez les informations et suivez les opérations associées.' :
+        isForm() ? 'Renseignez les informations ci-dessous.' : 'Consultez et gérez les données de votre activité.' }}</p>
+    </div>
+    @if (!isForm() && !isDetail() && canCreate()) {
+      <a class="button primary" [routerLink]="['/', moduleKey(), 'new']"><span>＋</span> Ajouter {{ current.singular }}</a>
+    }
+    @if ((isDetail() || isForm()) && !isEditing()) {
+      <a class="button secondary" [routerLink]="['/', moduleKey()]">← Retour à la liste</a>
+    }
+  </div>
+
+  @if (error()) { <div class="alert error">{{ error() }}</div> }
+  @if (loading()) { <div class="loading-card">Chargement…</div> }
+
+  @if (!loading() && !isForm() && !isDetail()) {
+    <section class="panel listing-panel">
+      <form class="toolbar" (ngSubmit)="search()">
+        <div class="search-control"><span>⌕</span>
+          <input name="query" [(ngModel)]="query" placeholder="Rechercher dans {{ current.title.toLowerCase() }}…">
+        </div>
+        @if (hasStatusColumn()) {
+          <input class="status-filter" name="status" [(ngModel)]="status" placeholder="Filtrer par statut">
+        }
+        <button class="button secondary" type="submit">Rechercher</button>
+      </form>
+      @if (records().length) {
+        <div class="table-wrap">
+          <table>
+            <thead><tr>@for (column of current.columns; track column.key) { <th>{{ column.label }}</th> }<th class="actions-heading">Actions</th></tr></thead>
+            <tbody>
+              @for (row of records(); track row['id']) {
+                <tr>
+                  @for (column of current.columns; track column.key) {
+                    <td>
+                      @if (column.format === 'status') {
+                        <span class="badge" [class]="badgeClass(row[column.key])">{{ humanize(row[column.key]) }}</span>
+                      } @else { {{ value(row, column.key) }} }
+                    </td>
+                  }
+                  <td class="row-actions">
+                    <a class="row-action" [routerLink]="rowLink(row)" title="Consulter">Voir</a>
+                    @if (canModifyRecord(row)) { <a class="row-action" [routerLink]="['/', moduleKey(), row['id'], 'edit']" title="Modifier">Modifier</a> }
+                    @if (canDeleteRecord(row)) { <button class="row-action danger-text" type="button" (click)="deleteRecord(row)">Supprimer</button> }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <footer class="table-footer">
+          <span>{{ totalElements() }} résultat{{ totalElements() > 1 ? 's' : '' }} · Page {{ page() + 1 }} sur {{ totalPages() || 1 }}</span>
+          <div class="pagination"><button class="button secondary small" type="button" (click)="changePage(-1)" [disabled]="page() === 0">← Précédent</button>
+            <button class="button secondary small" type="button" (click)="changePage(1)" [disabled]="page() + 1 >= totalPages()">Suivant →</button></div>
+        </footer>
+      } @else {
+        <div class="empty-state"><div class="empty-icon">⌕</div><h3>Aucun résultat</h3>
+          <p>Essayez une autre recherche ou ajoutez votre premier {{ current.singular }}.</p>
+          @if (canCreate()) { <a class="button primary" [routerLink]="['/', moduleKey(), 'new']">Ajouter {{ current.singular }}</a> }
+        </div>
+      }
+    </section>
+  }
+
+  @if (!loading() && isForm()) {
+    <section class="panel form-panel">
+      <form (ngSubmit)="submitForm()" #entityForm="ngForm">
+        <div class="form-grid">
+          @for (field of current.fields; track field.key) {
+            <div class="form-field" [class.full-width]="field.type === 'textarea'">
+              <label [for]="field.key">{{ field.label }} @if (field.required) { <span class="required">*</span> }</label>
+              @if (field.relation) {
+                <select [id]="field.key" [name]="field.key" [(ngModel)]="form[field.key]" [required]="!!field.required">
+                  <option [ngValue]="''" disabled>Choisir {{ field.label.toLowerCase() }}</option>
+                  @for (related of relatedRecords(); track related['id']) {
+                    <option [ngValue]="related['id']">{{ relationLabel(field, related['id']) }}</option>
+                  }
+                </select>
+                @if (!relatedRecords().length) { <small class="field-hint">Aucun élément disponible. Créez-le d’abord dans son espace.</small> }
+              } @else if (field.type === 'select') {
+                <select [id]="field.key" [name]="field.key" [(ngModel)]="form[field.key]" [required]="!!field.required">
+                  @for (option of field.options ?? []; track option) { <option [value]="option">{{ humanize(option) }}</option> }
+                </select>
+              } @else if (field.type === 'textarea') {
+                <textarea [id]="field.key" [name]="field.key" [(ngModel)]="form[field.key]" [required]="!!field.required" rows="3"></textarea>
+              } @else {
+                <input [id]="field.key" [name]="field.key" [type]="field.type ?? 'text'" [(ngModel)]="form[field.key]"
+                  [required]="!!field.required" [min]="field.min ?? null" [step]="field.step ?? null">
+              }
+              @if (field.hint) { <small class="field-hint">{{ field.hint }}</small> }
+            </div>
+          }
+        </div>
+        <div class="form-actions"><a class="button secondary" [routerLink]="isEditing() ? ['/', moduleKey(), record()?.['id']] : ['/', moduleKey()]">Annuler</a>
+          <button class="button primary" type="submit" [disabled]="entityForm.invalid || saving()">
+            {{ saving() ? 'Enregistrement…' : (isEditing() ? 'Enregistrer les modifications' : 'Créer ' + current.singular) }}
+          </button></div>
+      </form>
+    </section>
+  }
+
+  @if (!loading() && isDetail() && record(); as item) {
+    <div class="detail-layout">
+      <section class="panel detail-panel">
+        <div class="panel-heading"><div><h2>Détails</h2><p>Informations enregistrées dans la plateforme</p></div>
+          @if (item['status']) { <span class="badge" [class]="badgeClass(item['status'])">{{ humanize(item['status']) }}</span> }
+        </div>
+        <div class="detail-grid">
+          @for (entry of detailEntries(); track entry.label) {
+            <div class="detail-item"><span>{{ entry.label }}</span><strong>{{ entry.value }}</strong></div>
+          }
+        </div>
+      </section>
+      <aside class="panel action-panel">
+        <div class="panel-heading"><div><h2>Opérations</h2><p>Actions disponibles pour cet enregistrement</p></div></div>
+        @if (moduleKey() === 'orders') {
+          @if (orderActions.length) {
+            @for (itemAction of orderActions; track itemAction.action) {
+              <button class="operation-button" [class.operation-danger]="itemAction.action === 'cancel'"
+                type="button" (click)="performOrderAction(itemAction.action)">{{ itemAction.label }} <span>→</span></button>
+            }
+          } @else { <p class="muted-copy">Aucune action disponible pour le statut actuel ou votre rôle.</p> }
+          <button class="operation-button subtle" type="button" (click)="showTracking()">Historique de suivi <span>↗</span></button>
+          @if (canReportIncident) {
+            <a class="operation-button subtle" [routerLink]="['/incidents', 'new']" [queryParams]="{ orderId: item['id'] }">Signaler un incident <span>↗</span></a>
+          }
+          @if (canModifyRecord(item)) { <a class="operation-button subtle" [routerLink]="['/', moduleKey(), item['id'], 'edit']">Modifier la commande <span>↗</span></a> }
+        } @else if (moduleKey() === 'incidents' && canResolve) {
+          <button class="button primary full-button" type="button" (click)="resolveIncident()">Résoudre l’incident</button>
+        } @else {
+          <p class="muted-copy">Aucune opération supplémentaire n’est disponible pour cet élément.</p>
+          @if (canModifyRecord(item)) { <a class="button secondary full-button" [routerLink]="['/', moduleKey(), item['id'], 'edit']">Modifier</a> }
+        }
+      </aside>
+    </div>
+  }
+}

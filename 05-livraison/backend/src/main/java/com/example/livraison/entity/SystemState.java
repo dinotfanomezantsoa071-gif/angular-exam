@@ -1,0 +1,15 @@
+// Entité utilisée pour vérifier l'initialisation du système.
+package com.example.livraison.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+public class SystemState {
+    @Id
+    private Long id = 1L;
+    private String name = "verrou métier";
+
+    public Long getId() {
+        return id;
+    }
+}

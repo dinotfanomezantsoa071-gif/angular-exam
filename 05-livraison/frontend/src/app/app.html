@@ -1,0 +1,41 @@
+@if (auth.isAuthenticated()) {
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" routerLink="/dashboard">
+        <span class="brand-mark">L</span>
+        <span><strong>Livraison</strong><small>Operations platform</small></span>
+      </a>
+      <div class="nav-caption">ESPACE DE TRAVAIL</div>
+      <nav class="main-nav" aria-label="Navigation principale">
+        <a routerLink="/dashboard" routerLinkActive="active"><span class="nav-icon">⌂</span>Vue générale</a>
+        <a routerLink="/orders" routerLinkActive="active"><span class="nav-icon">▤</span>Commandes</a>
+        <a routerLink="/clients" routerLinkActive="active"><span class="nav-icon">♙</span>Clients</a>
+        <a routerLink="/deliverers" routerLinkActive="active"><span class="nav-icon">◉</span>Livreurs</a>
+        <a routerLink="/parcels" routerLinkActive="active"><span class="nav-icon">▣</span>Colis</a>
+        <a routerLink="/incidents" routerLinkActive="active"><span class="nav-icon">⚑</span>Incidents</a>
+        <a routerLink="/proofs" routerLinkActive="active"><span class="nav-icon">✓</span>Preuves de livraison</a>
+      </nav>
+      <div class="nav-caption reports-caption">PILOTAGE</div>
+      <nav class="main-nav">
+        <a routerLink="/statistics" routerLinkActive="active"><span class="nav-icon">▥</span>Statistiques</a>
+        @if (auth.isAdmin()) {
+          <a routerLink="/settings" routerLinkActive="active"><span class="nav-icon">⚙</span>Paramètres</a>
+        }
+      </nav>
+      <div class="sidebar-footer">
+        <span class="avatar">{{ auth.username().slice(0, 1).toUpperCase() }}</span>
+        <span class="user-label"><strong>{{ auth.username() }}</strong><small>{{ auth.roleLabel() }}</small></span>
+        <button class="icon-button logout-button" type="button" title="Se déconnecter" (click)="logout()">↪</button>
+      </div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar">
+        <div><span class="eyebrow">GESTION DES LIVRAISONS</span><strong>Centre de pilotage</strong></div>
+        <div class="topbar-right"><span class="online-dot"></span>Connecté <span class="topbar-user">{{ auth.username() }}</span></div>
+      </header>
+      <section class="page-content"><router-outlet /></section>
+    </main>
+  </div>
+} @else {
+  <router-outlet />
+}

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><main class="login">
+  <h1>Textile</h1>
+  <p class="error" th:if="${param.error}">Identifiants incorrects</p>
+  <p th:if="${param.logout}">Déconnexion effectuée</p>
+  <form method="post" th:action="@{/login}">
+    <label>Identifiant<input name="username" autocomplete="username" required></label>
+    <label>Mot de passe<input name="password" type="password" autocomplete="current-password" required></label>
+    <button>Se connecter</button>
+  </form>
+</main></body></html>
